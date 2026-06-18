@@ -5,13 +5,11 @@ import type { FlashToast } from '@/types/ui';
 
 export function useFlashToast(): void {
     useEffect(() => {
-        return router.on('flash', (event) => {
-            const flash = (event as CustomEvent).detail?.flash;
-            const data = flash?.toast as FlashToast | undefined;
+        return router.on('navigate', (event) => {
+            const page = (event as CustomEvent).detail?.page;
+            const data = page?.props?.flash?.toast as FlashToast | undefined;
 
-            if (!data) {
-                return;
-            }
+            if (!data) return;
 
             toast[data.type](data.message);
         });
