@@ -27,9 +27,7 @@ class CategoriesController extends Controller
             $request->safe()->except('image_path'),
             $request->file('image_path'),
         );
-
-        return redirect()
-            ->route('categories.index')
+        return to_route('categories.index')
             ->with('toast', ['type' => 'success', 'message' => 'Category created successfully']);
     }
 
@@ -41,8 +39,7 @@ class CategoriesController extends Controller
             $request->file('image_path'),
         );
 
-        return redirect()
-            ->route('categories.index')
+        return to_route('categories.index')
             ->with('toast', ['type' => 'success', 'message' => 'Category updated successfully']);
     }
 
@@ -50,8 +47,7 @@ class CategoriesController extends Controller
     {
         $this->categoryService->delete($category);
 
-        return redirect()
-            ->route('categories.index')
+        return to_route('categories.index')
             ->with('toast', ['type' => 'success', 'message' => 'Category deleted successfully']);
     }
 }
