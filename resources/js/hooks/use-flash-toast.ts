@@ -1,17 +1,27 @@
-import { router } from '@inertiajs/react';
-import { useEffect } from 'react';
+import { usePage } from '@inertiajs/react';
+import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import type { FlashToast } from '@/types/ui';
 
+type PageProps = {
+    flash?: {
+        toast?: FlashToast;
+    };
+};
+
 export function useFlashToast(): void {
+    const { flash } = usePage<PageProps>().props;
+
+    const lastMessageRef = useRef<string | null>(null);
+
     useEffect(() => {
-        return router.on('navigate', (event) => {
-            const page = (event as CustomEvent).detail?.page;
-            const data = page?.props?.flash?.toast as FlashToast | undefined;
+        if (!flash?.toast) return;
 
-            if (!data) return;
+        const { type, message } = flash.toast;
 
-            toast[data.type](data.message);
-        });
-    }, []);
+        if (lastMessageRef.current === message) return;
+        lastMessageRef.current = message;
+
+        toast[type](message);
+    }, [flash?.toast]);
 }
