@@ -9,15 +9,15 @@ import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { dashboard } from '@/routes';
-import { destroy as categoriesDestroy, index as categoriesRoute, update as categoriesUpdate } from '@/routes/categories';
+import { destroy as slidersDestroy, index as slidersRoute, update as slidersUpdate } from '@/routes/sliders';
 
-import { CategoryFormModal } from './partials/category-form-modal';
-import type { Category, PageProps } from './types';
+import { SliderFormModal } from './partials/slider-form-modal';
+import type { PageProps, Slider } from './types';
 
-export default function CategoriesIndex({ categories }: PageProps) {
+export default function SlidersIndex({ sliders }: PageProps) {
     const [formOpen, setFormOpen] = useState(false);
-    const [editTarget, setEditTarget] = useState<Category | undefined>(undefined);
-    const [deleteTarget, setDeleteTarget] = useState<Category | undefined>(undefined);
+    const [editTarget, setEditTarget] = useState<Slider | undefined>(undefined);
+    const [deleteTarget, setDeleteTarget] = useState<Slider | undefined>(undefined);
     const [deleting, setDeleting] = useState(false);
 
     function openAdd() {
@@ -25,15 +25,15 @@ export default function CategoriesIndex({ categories }: PageProps) {
         setFormOpen(true);
     }
 
-    function openEdit(category: Category) {
-        setEditTarget(category);
+    function openEdit(slider: Slider) {
+        setEditTarget(slider);
         setFormOpen(true);
     }
 
     function handleDelete() {
         if (!deleteTarget) return;
         setDeleting(true);
-        router.delete(categoriesDestroy.url(deleteTarget.id), {
+        router.delete(slidersDestroy.url(deleteTarget.id), {
             onFinish: () => {
                 setDeleting(false);
                 setDeleteTarget(undefined);
@@ -41,21 +41,21 @@ export default function CategoriesIndex({ categories }: PageProps) {
         });
     }
 
-    function toggleActive(category: Category) {
+    function toggleActive(slider: Slider) {
         router.post(
-            categoriesUpdate.url(category.id),
-            { _method: 'PUT', name: category.name, is_active: !category.is_active, order: category.order },
+            slidersUpdate.url(slider.id),
+            { _method: 'PUT', is_active: !slider.is_active, order: slider.order },
             {
                 preserveScroll: true,
                 onSuccess: () =>
                     toast.success(
-                        category.is_active ? 'Category deactivated' : 'Category activated',
+                        slider.is_active ? 'Slider deactivated' : 'Slider activated',
                     ),
             },
         );
     }
 
-    const columns: Column<Category>[] = [
+    const columns: Column<Slider>[] = [
         {
             key: 'order',
             header: '#',
@@ -67,24 +67,13 @@ export default function CategoriesIndex({ categories }: PageProps) {
         {
             key: 'image_path',
             header: 'Image',
-            className: 'w-16',
-            render: (row) =>
-                row.image_path ? (
-                    <img
-                        src={`/storage/${row.image_path}`}
-                        alt={row.name}
-                        className="size-10 rounded-md object-cover"
-                    />
-                ) : (
-                    <div className="flex size-10 items-center justify-center rounded-md border border-dashed border-border bg-muted">
-                        <ImageIcon className="size-4 text-muted-foreground" />
-                    </div>
-                ),
-        },
-        {
-            key: 'name',
-            header: 'Name',
-            render: (row) => <span className="font-medium">{row.name}</span>,
+            render: (row) => (
+                <img
+                    src={`/storage/${row.image_path}`}
+                    alt={`Slider ${row.id}`}
+                    className="h-14 w-28 rounded-md object-cover"
+                />
+            ),
         },
         {
             key: 'is_active',
@@ -94,7 +83,7 @@ export default function CategoriesIndex({ categories }: PageProps) {
                 <Switch
                     checked={row.is_active}
                     onCheckedChange={() => toggleActive(row)}
-                    aria-label={`Toggle ${row.name} status`}
+                    aria-label={`Toggle slider ${row.id} status`}
                 />
             ),
         },
@@ -108,7 +97,7 @@ export default function CategoriesIndex({ categories }: PageProps) {
                         size="icon"
                         variant="ghost"
                         onClick={() => openEdit(row)}
-                        aria-label={`Edit ${row.name}`}
+                        aria-label={`Edit slider ${row.id}`}
                     >
                         <Pencil className="size-4" />
                     </Button>
@@ -117,7 +106,7 @@ export default function CategoriesIndex({ categories }: PageProps) {
                         variant="ghost"
                         className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                         onClick={() => setDeleteTarget(row)}
-                        aria-label={`Delete ${row.name}`}
+                        aria-label={`Delete slider ${row.id}`}
                     >
                         <Trash2 className="size-4" />
                     </Button>
@@ -128,39 +117,39 @@ export default function CategoriesIndex({ categories }: PageProps) {
 
     return (
         <>
-            <Head title="Categories" />
+            <Head title="Sliders" />
 
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="flex items-center justify-between">
                     <Heading
                         variant="small"
-                        title="Categories"
-                        description="Manage product categories"
+                        title="Sliders"
+                        description="Manage offers and slider banners"
                     />
                     <Button onClick={openAdd} size="sm">
                         <PlusIcon />
-                        Add Category
+                        Add Slider
                     </Button>
                 </div>
 
                 <DataTable
                     columns={columns}
-                    data={categories}
-                    emptyMessage="No categories yet. Click 'Add Category' to create one."
+                    data={sliders}
+                    emptyMessage="No sliders yet. Click 'Add Slider' to create one."
                 />
             </div>
 
-            <CategoryFormModal
+            <SliderFormModal
                 open={formOpen}
                 onOpenChange={setFormOpen}
-                category={editTarget}
+                slider={editTarget}
             />
 
             <ConfirmDialog
                 open={Boolean(deleteTarget)}
                 onOpenChange={(open) => !open && setDeleteTarget(undefined)}
-                title="Delete Category"
-                description={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
+                title="Delete Slider"
+                description={`Are you sure you want to delete this slider? This action cannot be undone.`}
                 confirmLabel="Delete"
                 onConfirm={handleDelete}
                 loading={deleting}
@@ -169,9 +158,9 @@ export default function CategoriesIndex({ categories }: PageProps) {
     );
 }
 
-CategoriesIndex.layout = {
+SlidersIndex.layout = {
     breadcrumbs: [
         { title: 'Dashboard', href: dashboard() },
-        { title: 'Categories', href: categoriesRoute() },
+        { title: 'Sliders', href: slidersRoute() },
     ],
 };

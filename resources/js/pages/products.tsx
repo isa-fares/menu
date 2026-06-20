@@ -1,7 +1,8 @@
 import { Head } from '@inertiajs/react';
 import Heading from '@/components/heading';
 import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
-import { dashboard, products } from '@/routes';
+import { dashboard } from '@/routes';
+import { index as products } from '@/routes/products';
 
 export default function Products() {
     return (

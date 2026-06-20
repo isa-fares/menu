@@ -29,6 +29,7 @@ class CategoriesController extends Controller
         );
         return to_route('categories.index')
             ->with('toast', ['type' => 'success', 'message' => 'Category created successfully']);
+
     }
 
     public function update(UpdateCategoryRequest $request, Category $category)

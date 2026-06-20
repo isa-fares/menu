@@ -12,8 +12,10 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard, products, sliders } from '@/routes';
-import { categories } from '@/routes/app';
+import { dashboard } from '@/routes';
+import { index as categories } from '@/routes/categories';
+import { index as products } from '@/routes/products';
+import { index as sliders } from '@/routes/sliders';
 import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [

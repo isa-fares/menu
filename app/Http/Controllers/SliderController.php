@@ -2,64 +2,56 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreSliderRequest;
+use App\Http\Requests\UpdateSliderRequest;
 use App\Models\Slider;
-use Illuminate\Http\Request;
+use App\Services\SliderService;
+use Inertia\Inertia;
 
 class SliderController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    public function __construct(
+        private SliderService $sliderService
+    ) {}
+
     public function index()
     {
-        //
+        return Inertia::render('sliders/index', [
+            'sliders' => $this->sliderService->getAll(),
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function store(StoreSliderRequest $request)
     {
-        //
+        $this->sliderService->create(
+            $request->safe()->except('image_path'),
+            $request->file('image_path'),
+        );
+
+        return redirect()
+            ->route('sliders.index')
+            ->with('toast', ['type' => 'success', 'message' => 'Slider created successfully']);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function update(UpdateSliderRequest $request, Slider $slider)
     {
-        //
+        $this->sliderService->update(
+            $slider,
+            $request->safe()->except('image_path'),
+            $request->file('image_path'),
+        );
+
+        return redirect()
+            ->route('sliders.index')
+            ->with('toast', ['type' => 'success', 'message' => 'Slider updated successfully']);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Slider $slider)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Slider $slider)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Slider $slider)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Slider $slider)
     {
-        //
+        $this->sliderService->delete($slider);
+
+        return redirect()
+            ->route('sliders.index')
+            ->with('toast', ['type' => 'success', 'message' => 'Slider deleted successfully']);
     }
 }

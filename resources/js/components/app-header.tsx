@@ -27,8 +27,10 @@ import { UserMenuContent } from '@/components/user-menu-content';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { useInitials } from '@/hooks/use-initials';
 import { cn } from '@/lib/utils';
-import { dashboard, products, sliders } from '@/routes';
-import { categories } from '@/routes/app';
+import { dashboard } from '@/routes';
+import { index as categories } from '@/routes/categories';
+import { index as products } from '@/routes/products';
+import { index as sliders } from '@/routes/sliders';
 import type { BreadcrumbItem, NavItem } from '@/types';
 
 type Props = {

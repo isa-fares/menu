@@ -2,64 +2,57 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreProductRequest;
+use App\Http\Requests\UpdateProductRequest;
 use App\Models\Product;
-use Illuminate\Http\Request;
+use App\Services\ProductService;
+use Inertia\Inertia;
 
 class ProductsController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    public function __construct(
+        private ProductService $productService
+    ) {}
+
     public function index()
     {
-        //
+        return Inertia::render('products/index', [
+            'products'   => $this->productService->getAll(),
+            'categories' => $this->productService->getCategories(),
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function store(StoreProductRequest $request)
     {
-        //
+        $this->productService->create(
+            $request->safe()->except('image_path'),
+            $request->file('image_path'),
+        );
+
+        return redirect()
+            ->route('products.index')
+            ->with('toast', ['type' => 'success', 'message' => 'Product created successfully']);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function update(UpdateProductRequest $request, Product $product)
     {
-        //
+        $this->productService->update(
+            $product,
+            $request->safe()->except('image_path'),
+            $request->file('image_path'),
+        );
+
+        return redirect()
+            ->route('products.index')
+            ->with('toast', ['type' => 'success', 'message' => 'Product updated successfully']);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Product $product)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Product $product)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Product $product)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Product $product)
     {
-        //
+        $this->productService->delete($product);
+
+        return redirect()
+            ->route('products.index')
+            ->with('toast', ['type' => 'success', 'message' => 'Product deleted successfully']);
     }
 }
