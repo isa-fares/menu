@@ -16,7 +16,7 @@ class CategoriesController extends Controller
 
     public function index()
     {
-        return Inertia::render('categories', [
+        return Inertia::render('categories/index', [
             'categories' => $this->categoryService->getAll(),
         ]);
     }
