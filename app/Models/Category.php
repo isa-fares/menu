@@ -36,6 +36,14 @@ class Category extends Model
     }
 
     /**
+     * @return HasMany<CategoryTranslation, $this>
+     */
+    public function translations(): HasMany
+    {
+        return $this->hasMany(CategoryTranslation::class);
+    }
+
+    /**
      * @return HasMany<Product, $this>
      */
     public function products(): HasMany

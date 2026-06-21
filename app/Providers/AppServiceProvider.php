@@ -24,6 +24,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+
+        // ضبط لغة التطبيق من الـ session
+        app()->setLocale(session('locale', config('app.locale')));
     }
 
     /**

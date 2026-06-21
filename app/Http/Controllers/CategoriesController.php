@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreCategoryRequest;
 use App\Http\Requests\UpdateCategoryRequest;
 use App\Models\Category;
+use App\Models\Language;
 use App\Services\CategoryService;
 use Inertia\Inertia;
 
@@ -17,7 +18,12 @@ class CategoriesController extends Controller
     public function index()
     {
         return Inertia::render('categories/index', [
-            'categories' => $this->categoryService->getAll(),
+            'categories'          => $this->categoryService->getAll(),
+            // اللغات غير الافتراضية — لها حقول ترجمة في الفورم
+            'translatable_languages' => Language::where('is_active', true)
+                ->where('is_default', false)
+                ->orderBy('code')
+                ->get(['id', 'code', 'name', 'native_name']),
         ]);
     }
 
@@ -27,9 +33,9 @@ class CategoriesController extends Controller
             $request->safe()->except('image_path'),
             $request->file('image_path'),
         );
+
         return to_route('categories.index')
             ->with('toast', ['type' => 'success', 'message' => 'Category created successfully']);
-
     }
 
     public function update(UpdateCategoryRequest $request, Category $category)

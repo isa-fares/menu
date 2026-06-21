@@ -1,6 +1,7 @@
 import { Head, router } from '@inertiajs/react';
 import { ImageIcon, Pencil, PlusIcon, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
 import { ConfirmDialog } from '@/components/confirm-dialog';
@@ -14,7 +15,9 @@ import { destroy as categoriesDestroy, index as categoriesRoute, update as categ
 import { CategoryFormModal } from './partials/category-form-modal';
 import type { Category, PageProps } from './types';
 
-export default function CategoriesIndex({ categories }: PageProps) {
+export default function CategoriesIndex({ categories, translatable_languages }: PageProps) {
+    const { t } = useTranslation();
+
     const [formOpen, setFormOpen] = useState(false);
     const [editTarget, setEditTarget] = useState<Category | undefined>(undefined);
     const [deleteTarget, setDeleteTarget] = useState<Category | undefined>(undefined);
@@ -49,7 +52,9 @@ export default function CategoriesIndex({ categories }: PageProps) {
                 preserveScroll: true,
                 onSuccess: () =>
                     toast.success(
-                        category.is_active ? 'Category deactivated' : 'Category activated',
+                        category.is_active
+                            ? t('categories.deactivated')
+                            : t('categories.activated'),
                     ),
             },
         );
@@ -58,7 +63,7 @@ export default function CategoriesIndex({ categories }: PageProps) {
     const columns: Column<Category>[] = [
         {
             key: 'order',
-            header: '#',
+            header: t('common.order'),
             className: 'w-12 text-center',
             render: (row) => (
                 <span className="font-mono text-muted-foreground">{row.order}</span>
@@ -66,7 +71,7 @@ export default function CategoriesIndex({ categories }: PageProps) {
         },
         {
             key: 'image_path',
-            header: 'Image',
+            header: t('common.image'),
             className: 'w-16',
             render: (row) =>
                 row.image_path ? (
@@ -83,12 +88,12 @@ export default function CategoriesIndex({ categories }: PageProps) {
         },
         {
             key: 'name',
-            header: 'Name',
+            header: t('common.name'),
             render: (row) => <span className="font-medium">{row.name}</span>,
         },
         {
             key: 'is_active',
-            header: 'Status',
+            header: t('common.status'),
             className: 'w-24',
             render: (row) => (
                 <Switch
@@ -100,7 +105,7 @@ export default function CategoriesIndex({ categories }: PageProps) {
         },
         {
             key: 'actions',
-            header: 'Actions',
+            header: t('common.actions'),
             className: 'w-24 text-right',
             render: (row) => (
                 <div className="flex items-center justify-end gap-1">
@@ -108,7 +113,7 @@ export default function CategoriesIndex({ categories }: PageProps) {
                         size="icon"
                         variant="ghost"
                         onClick={() => openEdit(row)}
-                        aria-label={`Edit ${row.name}`}
+                        aria-label={`${t('common.edit')} ${row.name}`}
                     >
                         <Pencil className="size-4" />
                     </Button>
@@ -117,7 +122,7 @@ export default function CategoriesIndex({ categories }: PageProps) {
                         variant="ghost"
                         className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                         onClick={() => setDeleteTarget(row)}
-                        aria-label={`Delete ${row.name}`}
+                        aria-label={`${t('common.delete')} ${row.name}`}
                     >
                         <Trash2 className="size-4" />
                     </Button>
@@ -128,25 +133,25 @@ export default function CategoriesIndex({ categories }: PageProps) {
 
     return (
         <>
-            <Head title="Categories" />
+            <Head title={t('categories.title')} />
 
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="flex items-center justify-between">
                     <Heading
                         variant="small"
-                        title="Categories"
-                        description="Manage product categories"
+                        title={t('categories.title')}
+                        description={t('categories.description')}
                     />
                     <Button onClick={openAdd} size="sm">
                         <PlusIcon />
-                        Add Category
+                        {t('categories.add')}
                     </Button>
                 </div>
 
                 <DataTable
                     columns={columns}
                     data={categories}
-                    emptyMessage="No categories yet. Click 'Add Category' to create one."
+                    emptyMessage={t('categories.empty')}
                 />
             </div>
 
@@ -154,14 +159,16 @@ export default function CategoriesIndex({ categories }: PageProps) {
                 open={formOpen}
                 onOpenChange={setFormOpen}
                 category={editTarget}
+                languages={translatable_languages}
             />
 
             <ConfirmDialog
                 open={Boolean(deleteTarget)}
                 onOpenChange={(open) => !open && setDeleteTarget(undefined)}
-                title="Delete Category"
-                description={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
-                confirmLabel="Delete"
+                title={t('categories.deleteTitle')}
+                description={t('categories.deleteConfirm', { name: deleteTarget?.name })}
+                confirmLabel={t('common.delete')}
+                cancelLabel={t('common.cancel')}
                 onConfirm={handleDelete}
                 loading={deleting}
             />

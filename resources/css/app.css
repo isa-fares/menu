@@ -141,3 +141,14 @@
         @apply bg-background text-foreground;
     }
 }
+
+/* ─── Menu UI Variables ──────────────────────────────────── */
+:root {
+    --menu-main: #E99000;
+    --menu-main-secondary: #f09606;
+    --menu-back: hsl(0 0% 97%);
+}
+
+/* Utility: hide scrollbar but keep scroll */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }

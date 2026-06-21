@@ -1,6 +1,7 @@
 import { router, useForm } from '@inertiajs/react';
 import { ImageIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -16,26 +17,34 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { store as categoriesStore, update as categoriesUpdate } from '@/routes/categories';
 
-import type { Category } from '../types';
+import type { Category, TranslatableLanguage } from '../types';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
+
+type TranslationField = {
+    language_id: number;
+    name: string;
+};
 
 type FormData = {
     name: string;
     image_path: File | null;
     is_active: boolean;
     order: number;
+    translations: TranslationField[];
 };
 
 type Props = {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     category?: Category;
+    languages: TranslatableLanguage[];
 };
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-export function CategoryFormModal({ open, onOpenChange, category }: Props) {
+export function CategoryFormModal({ open, onOpenChange, category, languages }: Props) {
+    const { t } = useTranslation();
     const isEditing = Boolean(category);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -46,9 +55,22 @@ export function CategoryFormModal({ open, onOpenChange, category }: Props) {
             image_path: null,
             is_active: true,
             order: 0,
+            translations: [],
         });
 
-    // مزامنة البيانات عند فتح الـ modal أو تغيير التصنيف
+    // بناء translations array من اللغات المتاحة
+    function buildTranslations(cat?: Category): TranslationField[] {
+        return languages.map((lang) => {
+            const existing = cat?.translations.find(
+                (tr) => tr.language_id === lang.id,
+            );
+            return {
+                language_id: lang.id,
+                name: existing?.name ?? '',
+            };
+        });
+    }
+
     useEffect(() => {
         if (open) {
             setData({
@@ -56,9 +78,9 @@ export function CategoryFormModal({ open, onOpenChange, category }: Props) {
                 image_path: null,
                 is_active: category?.is_active ?? true,
                 order: category?.order ?? 0,
+                translations: buildTranslations(category),
             });
             setImagePreview(null);
-            // إعادة تعيين الـ file input
             if (fileInputRef.current) fileInputRef.current.value = '';
         }
     }, [open, category?.id]);
@@ -83,6 +105,15 @@ export function CategoryFormModal({ open, onOpenChange, category }: Props) {
         }
     }
 
+    function setTranslationName(languageId: number, value: string) {
+        setData(
+            'translations',
+            data.translations.map((tr) =>
+                tr.language_id === languageId ? { ...tr, name: value } : tr,
+            ),
+        );
+    }
+
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
 
@@ -100,7 +131,6 @@ export function CategoryFormModal({ open, onOpenChange, category }: Props) {
         }
     }
 
-    // عرض الصورة: أولوية للـ preview الجديدة ثم الصورة المحفوظة
     const previewSrc =
         imagePreview ?? (category?.image_path ? `/storage/${category.image_path}` : null);
 
@@ -109,29 +139,61 @@ export function CategoryFormModal({ open, onOpenChange, category }: Props) {
             <DialogContent className="sm:max-w-lg">
                 <DialogHeader>
                     <DialogTitle>
-                        {isEditing ? 'Edit Category' : 'Add Category'}
+                        {isEditing ? t('categories.edit') : t('categories.add')}
                     </DialogTitle>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
-                    {/* Name */}
+                    {/* الاسم بالعربية — دائماً */}
                     <div className="space-y-1.5">
                         <Label htmlFor="cat-name">
-                            Name <span className="text-destructive">*</span>
+                            {t('categories.nameField')}{' '}
+                            <span className="text-destructive">*</span>
                         </Label>
                         <Input
                             id="cat-name"
                             value={data.name}
                             onChange={(e) => setData('name', e.target.value)}
-                            placeholder="e.g. Burgers"
+                            placeholder="مثال: برغر"
+                            dir="rtl"
                             aria-invalid={Boolean(errors.name)}
                         />
                         <InputError message={errors.name} />
                     </div>
 
+                    {/* حقول الترجمة — لكل لغة إضافية */}
+                    {languages.map((lang, index) => (
+                        <div key={lang.id} className="space-y-1.5">
+                            <Label htmlFor={`cat-name-${lang.code}`}>
+                                {t('common.name')} ({lang.native_name})
+                            </Label>
+                            <Input
+                                id={`cat-name-${lang.code}`}
+                                value={data.translations[index]?.name ?? ''}
+                                onChange={(e) =>
+                                    setTranslationName(lang.id, e.target.value)
+                                }
+                                placeholder={`e.g. Burger`}
+                                dir={lang.code === 'ar' ? 'rtl' : 'ltr'}
+                                aria-invalid={Boolean(
+                                    (errors as Record<string, string>)[
+                                        `translations.${index}.name`
+                                    ],
+                                )}
+                            />
+                            <InputError
+                                message={
+                                    (errors as Record<string, string>)[
+                                        `translations.${index}.name`
+                                    ]
+                                }
+                            />
+                        </div>
+                    ))}
+
                     {/* Image */}
                     <div className="space-y-1.5">
-                        <Label htmlFor="cat-image">Image</Label>
+                        <Label htmlFor="cat-image">{t('common.image')}</Label>
                         <div className="flex items-start gap-3">
                             <button
                                 type="button"
@@ -159,10 +221,10 @@ export function CategoryFormModal({ open, onOpenChange, category }: Props) {
                                     aria-invalid={Boolean(errors.image_path)}
                                 />
                                 <p className="text-xs text-muted-foreground">
-                                    JPG, PNG or WebP · max 2 MB
+                                    {t('common.imageHint')}
                                     {isEditing && !imagePreview && category?.image_path && (
-                                        <span className="ml-1 text-muted-foreground/70">
-                                            · leave empty to keep current image
+                                        <span className="ml-1 opacity-70">
+                                            · {t('common.leaveEmptyImage')}
                                         </span>
                                     )}
                                 </p>
@@ -173,7 +235,7 @@ export function CategoryFormModal({ open, onOpenChange, category }: Props) {
 
                     {/* Order */}
                     <div className="space-y-1.5">
-                        <Label htmlFor="cat-order">Display Order</Label>
+                        <Label htmlFor="cat-order">{t('common.displayOrder')}</Label>
                         <Input
                             id="cat-order"
                             type="text"
@@ -199,7 +261,7 @@ export function CategoryFormModal({ open, onOpenChange, category }: Props) {
                             }
                         />
                         <Label htmlFor="cat-active" className="cursor-pointer">
-                            Active
+                            {t('common.active')}
                         </Label>
                     </div>
 
@@ -210,14 +272,14 @@ export function CategoryFormModal({ open, onOpenChange, category }: Props) {
                             onClick={handleClose}
                             disabled={processing}
                         >
-                            Cancel
+                            {t('common.cancel')}
                         </Button>
                         <Button type="submit" disabled={processing}>
                             {processing
-                                ? 'Saving…'
+                                ? t('common.saving')
                                 : isEditing
-                                  ? 'Save Changes'
-                                  : 'Add Category'}
+                                  ? t('common.saveChanges')
+                                  : t('categories.add')}
                         </Button>
                     </DialogFooter>
                 </form>

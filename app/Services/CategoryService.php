@@ -11,6 +11,7 @@ class CategoryService
     public function getAll()
     {
         return Category::query()
+            ->with('translations.language')
             ->orderBy('order')
             ->get();
     }
@@ -21,7 +22,14 @@ class CategoryService
             $data['image_path'] = $image->store('categories', 'public');
         }
 
-        return Category::create($data);
+        $translations = $data['translations'] ?? [];
+        unset($data['translations']);
+
+        $category = Category::create($data);
+
+        $this->syncTranslations($category, $translations);
+
+        return $category;
     }
 
     public function update(Category $category, array $data, ?UploadedFile $image = null): Category
@@ -31,7 +39,12 @@ class CategoryService
             $data['image_path'] = $image->store('categories', 'public');
         }
 
+        $translations = $data['translations'] ?? [];
+        unset($data['translations']);
+
         $category->update($data);
+
+        $this->syncTranslations($category, $translations);
 
         return $category->fresh();
     }
@@ -41,6 +54,30 @@ class CategoryService
         $this->deleteImage($category);
 
         return $category->delete();
+    }
+
+    /**
+     * حفظ أو تحديث الترجمات
+     * كل عنصر: ['language_id' => x, 'name' => '...']
+     */
+    private function syncTranslations(Category $category, array $translations): void
+    {
+        foreach ($translations as $translation) {
+            $name = trim($translation['name'] ?? '');
+
+            if ($name === '') {
+                // احذف الترجمة إذا تُركت فارغة
+                $category->translations()
+                    ->where('language_id', $translation['language_id'])
+                    ->delete();
+                continue;
+            }
+
+            $category->translations()->updateOrCreate(
+                ['language_id' => $translation['language_id']],
+                ['name'        => $name],
+            );
+        }
     }
 
     private function deleteImage(Category $category): void

@@ -14,15 +14,19 @@ class StoreProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'category_id'    => ['required', 'integer', 'exists:categories,id'],
-            'name'           => ['required', 'string', 'max:255'],
-            'price'          => ['required', 'numeric', 'min:0'],
-            'description'    => ['nullable', 'string'],
-            'calories'       => ['nullable', 'integer', 'min:0'],
-            'image_path'     => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-            'is_active'      => ['boolean'],
-            'is_most_ordered'=> ['boolean'],
-            'order'          => ['integer'],
+            'category_id'                => ['required', 'integer', 'exists:categories,id'],
+            'name'                       => ['required', 'string', 'max:255'],
+            'price'                      => ['required', 'numeric', 'min:0'],
+            'description'                => ['nullable', 'string'],
+            'calories'                   => ['nullable', 'integer', 'min:0'],
+            'image_path'                 => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'is_active'                  => ['boolean'],
+            'is_most_ordered'            => ['boolean'],
+            'order'                      => ['integer'],
+            'translations'               => ['nullable', 'array'],
+            'translations.*.language_id' => ['required', 'integer', 'exists:languages,id'],
+            'translations.*.name'        => ['nullable', 'string', 'max:255'],
+            'translations.*.description' => ['nullable', 'string'],
         ];
     }
 }
